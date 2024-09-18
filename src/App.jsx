@@ -1,39 +1,69 @@
 /* eslint-disable react/prop-types */
-/* 
-Wednesday/Thursday todos:
-
-# FUNCTIONALITY:
-- generate test requests which query our target endpoint
-- checking local storage, populating local storage (persistent sessions, we are storing previously used endpoints)
-- make our "copy to clipboard"
-- update current url when we click "create new endpoint" (History API)
-
-
-# UI:
-- general layout and styling
-- breaking down the "currently viewed request" data 
-
-*/
-
 import { useState, useEffect } from 'react'
+
 import './App.css'
 import {
   createEndpoint,
   getSingle,
   getAll,
-  endpointExists,
+  //   endpointExists,
 } from './services/db_queries'
 
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
     <>
       <button
-        className="border-slate-600 border-8"
-        onClick={handleCreateEndpoint}
+        className="font-bold py-3 px-20 rounded-full hover:bg-green-500 transition duration-400"
+        onClick={() => {
+          console.log('created endpoint: ', handleCreateEndpoint())
+        }}
       >
-        CREATE ENDPOINT
+        new endpoint
       </button>
     </>
+  )
+}
+// fresh session...
+const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-neutral-800 text-white">
+      <button
+        className="font-bold py-3 px-5 rounded-full shadow-lg bg-green-500 transition duration-400"
+        onClick={() => {
+          handleCreateEndpoint()
+          setFreshUser(false)
+        }}
+      >
+        Generate Endpoint
+      </button>
+    </main>
+  )
+}
+
+const CopyButton = ({ endpoint }) => {
+  // add "COPIED" behavior in the button
+  return (
+    <button
+      className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
+      onClick={() =>
+        navigator.clipboard.writeText(window.location.href + endpoint)
+      }
+    >
+      copy endpoint
+    </button>
+  )
+}
+
+const TargetEndpoint = ({ endpoint }) => {
+  return (
+    <button
+      className="font-extrabold py-3 px-5 border-4 border-sky-400 rounded-sm"
+      onClick={() => {
+        console.log('tried to copy: ', window.location.href + endpoint)
+      }}
+    >
+      {window.location.href + endpoint}
+    </button>
   )
 }
 
@@ -46,6 +76,38 @@ const CurrentlyViewedRequest = ({ requestData }) => {
       <div>Headers</div>
       <div>Body</div>
     </>
+  )
+}
+
+const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
+  return (
+    <>
+      <h3>Requests</h3>
+      <div className="overflow-y-auto grid-rows-1">
+        {requests.map((request) => (
+          <Request
+            request={request}
+            key={request.id}
+            endpoint={endpoint}
+            handleFetchSingleRequest={handleFetchSingleRequest}
+          />
+        ))}
+      </div>
+    </>
+  )
+}
+
+const Request = ({ request, handleFetchSingleRequest, endpoint }) => {
+  return (
+    <span
+      className="border-4 border-red-100"
+      key={request.id}
+      onClick={() => {
+        handleFetchSingleRequest(endpoint, request.id)
+      }}
+    >
+      {request.method} | {request.path}
+    </span>
   )
 }
 
@@ -65,42 +127,40 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
       setRequests(data)
     }
     fetchEndpointRequests(endpoint)
-  }, [])
+  }, [endpoint])
 
   return (
     <>
-      <div className="px-1 border-8">This is a request bin</div>
-      <CreateEndpointButton handleCreateEndpoint={handleCreateEndpoint} />
-      <button id="copy-button" onClick={() => alert(`copied: ${endpoint}`)}>
-        Copy
-      </button>
-      <div>
-        <span>Endpoint: {endpoint}</span>
+      <div className="min-h-screen flex-col items-center bg-neutral-800 text-white">
+        <nav className="h-1/8 flex flex-row py-5 px-5 align-baseline">
+          <div className="flex-1">
+            <TargetEndpoint endpoint={endpoint} />
+          </div>
+          <div className="flex-1 flex justify-between items-center">
+            <CopyButton endpoint={endpoint} />
+            <CreateEndpointButton handleCreateEndpoint={handleCreateEndpoint} />
+          </div>
+        </nav>
+
+        <main className="h-7/8 flex flex-row py-5 px-5 align-baseline">
+          <div className="flex-1">
+            <RequestTable
+              requests={requests}
+              endpoint={endpoint}
+              handleFetchSingleRequest={handleFetchSingleRequest}
+            />
+          </div>
+          <div className="flex-1">
+            <h3>
+              <b>Currently Viewed Request</b>
+            </h3>
+
+            {currentRequest ? (
+              <CurrentlyViewedRequest requestData={currentRequest} />
+            ) : null}
+          </div>
+        </main>
       </div>
-
-      <h4>Requests</h4>
-      {requests.map((request) => {
-        return (
-          <li
-            key={request.id}
-            onClick={() => {
-              handleFetchSingleRequest(endpoint, request.id)
-              //   console.log('handleFetchSingleRequest was invoked by click')
-            }}
-          >
-            {request.dt_received} | {request.method} | {request.path}
-          </li>
-        )
-      })}
-      <br />
-      <br />
-      <h3>
-        <b>Currently Viewed Request</b>
-      </h3>
-
-      {currentRequest ? (
-        <CurrentlyViewedRequest requestData={currentRequest} />
-      ) : null}
     </>
   )
 }
@@ -109,8 +169,10 @@ function App() {
   const [freshUser, setFreshUser] = useState(true)
   const [endpoint, setEndpoint] = useState(null)
 
+  // console.log(generateRandomHash())
+
   useEffect(() => {
-    let path = window.location.pathname
+    const path = window.location.pathname
     if (path === '/') return
 
     const regex = /^\/[a-z0-9]{8}\/view$/i
@@ -133,20 +195,23 @@ function App() {
     console.log('valid:', potentialEndpoint)
   }, [])
 
-  // how do we make async request?  probably not in USE EFFECT???
   const handleCreateEndpoint = async () => {
+    /* 
+    1. request new endpoint from backend
+    2. modify "endpoint" state value 
+    3. 
+    */
+
     const newEndpoint = await createEndpoint()
-    // console.log(newEndpoint)
+
     setEndpoint(newEndpoint)
 
-    // Current URL: https://my-website.com/page_a
-    console.log()
-    const nextURL = window.location.href
+    const nextURL = `${window.location.href}${newEndpoint.endpoint_hash}/view`
     const nextTitle = 'our Request bin'
-    const nextState = { additionalInformation: 'Updated the URL with JS' }
 
+    console.log(nextTitle, nextURL)
     // This will create a new entry in the browser's history, without reloading
-    window.history.pushState(nextState, nextTitle, nextURL)
+    window.history.pushState({}, nextTitle, nextURL)
 
     // setFreshUser(false)
   }
@@ -154,67 +219,18 @@ function App() {
   return (
     <>
       {freshUser ? (
-        <button
-          onClick={() => {
-            // console.log('create new endpoint ')
-            handleCreateEndpoint()
-          }}
-        >
-          new public endpoint
-        </button>
+        <GenerateEndpoint
+          handleCreateEndpoint={handleCreateEndpoint}
+          setFreshUser={setFreshUser}
+        />
       ) : (
-        <EndpointView endpoint={endpoint} />
+        <EndpointView
+          endpoint={endpoint}
+          handleCreateEndpoint={handleCreateEndpoint}
+        />
       )}
     </>
   )
 }
 
 export default App
-
-// useEffect(() => {
-// check url for a bin id
-
-/*
-    - input the base url of our request bin https://www.requestbin.com
-    - input a url with a endpoint in the path https://www.requestbin.com/&@$@$&&/view
-
-      - DOES THIS endpoint view exist for another user?  if it does exist for another client, add
-
-      - check curr local storage for existing bins (endpoints)
-          - if the key exists, load the last view of the most recent endpoint (last in the array)
-          - otherwise -> , call createEndpoint, add to local storage, redirect to new url for VIEW of that endpoint
-      */
-//     const checkLocalStorage = () => {
-//       const cachedEndpoints = localStorage.getItem('cached_endpoints')
-
-//       if (!cachedEndpoints) {
-//         // check db
-//       }
-//     }
-
-//     return () => {}
-//   }, [])
-
-// const createNewBin = async (event) => {
-//   event.preventDefault()
-
-//   try {
-//     const endpoint = createBin()
-
-//     const endpointsArray = localStorage.getItem('bin5alive.endpoints')
-
-//     endpointsArray.push(endpoint)
-
-//     window.localStorage.setItem(
-//       'bin5alive.endpoints',
-//       JSON.stringify(endpointsArray)
-//     )
-
-//     window.localStorage.setItem('bin5alive.current', JSON.stringify(endpoint))
-//   } catch (error) {
-//     setErrorMessage('Error: Could not create a new bin')
-//     setTimeout(() => {
-//       setErrorMessage(null)
-//     }, 3000)
-//   }
-// }

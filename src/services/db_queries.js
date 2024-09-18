@@ -1,8 +1,25 @@
-const BASE = 'http://localhost:3000/' // process.env.BASE_URL
+import settings from '../settings'
+const BASE = settings.API_URL
+
+function generateRandomHash() {
+  const hash_length = 8
+  let result = ''
+  const characters =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  const charactersLength = characters.length
+  let counter = 0
+
+  while (counter < hash_length) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength))
+    counter += 1
+  }
+
+  return result
+}
 
 const createEndpoint = async () => {
-  return 'a1111111'
-  //   return await fetch('/')
+    const endpoint_hash = generateRandomHash()
+    return { "endpoint_hash": endpoint_hash }
 }
 
 const getSingle = async (endpoint_id, request_id) => {
