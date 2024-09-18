@@ -1,132 +1,12 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
-import { createEndpoint, getFullRequest } from './services/db_queries'
-
-/* 
-- check local storage to see if there is any session information re: past endpoints
-*/
-
-const dummyRequests = [
-  {
-    id: 1,
-    endpoint: 'a111111',
-    dt_received: '2024-09-16 02:18:56.062676',
-    mongo_id: 1,
-    method: 'POST',
-    path: '/sample/post/request/',
-  },
-  {
-    id: 2,
-    endpoint: 'a111111',
-    dt_received: '2024-09-16 02:19:56.062676',
-    mongo_id: 2,
-    method: 'POST',
-    path: '/',
-  },
-  {
-    id: 3,
-    endpoint: 'a111111',
-    dt_received: '2024-09-16 02:20:56.062676',
-    mongo_id: 3,
-    method: 'GET',
-    path: '/sample/get/request?id=ddc5f0ed-60ff-4435-abc5-590fafe4a771&timestamp=1544827965&event=delivered',
-  },
-]
-
-// const dummyBins = [
-//   {
-//     id: 1,
-//     endpoint: 'a111111',
-//     dt_created: '2024-09-16 01:21:00.000000',
-//   },
-//   {
-//     id: 2,
-//     endpoint: 'b222222',
-//     dt_created: '2024-09-16 01:21:00.000000',
-//   },
-//   {
-//     id: 3,
-//     endpoint: 'c333333',
-//     dt_created: '2024-09-16 01:21:00.000000',
-//   },
-// ]
-
-// const dummyRequestObjects = [
-//   {
-//     id: 1,
-//     dt_created: '2024-09-16 02:18:56.062676',
-//     endpoint: 'a111111',
-//     request_object: {
-//       method: 'POST',
-//       path: '/sample/post/request/',
-//       headers: {
-//         host: 'enlt637fuyveg.x.pipedream.net',
-//         'x-amzn-trace-id': 'Root=1-66e8a638-1ff856491e0f24cc2a0dd6f2',
-//         'content-length': 88,
-//         pragma: 'no-cache',
-//         'cache-control': 'no-cache',
-//         accept: 'application/json, text/plain, */*',
-//         'user-agent':
-//           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-//         'content-type': 'application/json',
-//         origin: 'https://public.requestbin.com',
-//       },
-//       body: {
-//         id: 'ddc5f0ed-60ff-4435-abc5-590fafe4a771',
-//         timestamp: 1544827965,
-//         event: 'delivered',
-//       },
-//     },
-//   },
-//   {
-//     id: 2,
-//     dt_created: '2024-09-16 02:19:56.062676',
-//     endpoint: 'a111111',
-//     request_object: {
-//       method: 'POST',
-//       path: '/',
-//       headers: {
-//         host: 'enlt637fuyveg.x.pipedream.net',
-//         'x-amzn-trace-id': 'Root=1-66e8a638-1ff856491e0f24cc2a0dd6f2',
-//         'content-length': 88,
-//         pragma: 'no-cache',
-//         'cache-control': 'no-cache',
-//         accept: 'application/json, text/plain, */*',
-//         'user-agent':
-//           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-//         'content-type': 'application/json',
-//         origin: 'https://public.requestbin.com',
-//       },
-//       body: {
-//         id: 'ddc5f0ed-60ff-4435-abc5-590fafe4a771',
-//         timestamp: 1544827965,
-//         event: 'delivered',
-//       },
-//     },
-//   },
-//   {
-//     id: 3,
-//     dt_created: '2024-09-16 02:20:56.062676',
-//     endpoint: 'a111111',
-//     request_object: {
-//       method: 'GET',
-//       path: '/sample/get/request?id=ddc5f0ed-60ff-4435-abc5-590fafe4a771&timestamp=1544827965&event=delivered',
-//       headers: {
-//         host: 'enlt637fuyveg.x.pipedream.net',
-//         'x-amzn-trace-id': 'Root=1-66e8a638-1ff856491e0f24cc2a0dd6f2',
-//         'content-length': 88,
-//         pragma: 'no-cache',
-//         'cache-control': 'no-cache',
-//         accept: 'application/json, text/plain, */*',
-//         'user-agent':
-//           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-//         'content-type': 'application/json',
-//         origin: 'https://public.requestbin.com',
-//       },
-//     },
-//   },
-// ]
+import {
+  createEndpoint,
+  getSingle,
+  getAll,
+  endpointExists,
+} from './services/db_queries'
 
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
@@ -143,22 +23,33 @@ const CreateEndpointButton = ({ handleCreateEndpoint }) => {
 
 const CurrentlyViewedRequest = ({ requestData }) => {
   console.log(requestData)
-  return <>{JSON.stringify(requestData)}</>
+  return (
+    <>
+      {JSON.stringify(requestData)}
+      <div>Details</div>
+      <div>Headers</div>
+      <div>Body</div>
+    </>
+  )
 }
 
-function App() {
-  const [endpoint, setEndpoint] = useState(null)
+const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
   const [currentRequest, setCurrentRequest] = useState(null)
-  const [requests, setRequests] = useState(dummyRequests) // conditional rendering with null or [], impact of useEffect and dom creation
+  const [requests, setRequests] = useState([]) // conditional rendering with null or [], impact of useEffect and dom creation
 
-  // how do we make async request?  probably not in USE EFFECT
-  const handleCreateEndpoint = async () => {
-    setEndpoint(await createEndpoint())
+  const handleFetchSingleRequest = async (endpoint_id, request_id) => {
+    const singleRequest = await getSingle(endpoint_id, request_id)
+    // console.log(`singleRequest: `, singleRequest)
+    setCurrentRequest(singleRequest)
   }
 
-  const handleFetchSingleRequest = (endpoint_id, request_id) => {
-    return getFullRequest(endpoint_id, request_id)
-  }
+  useEffect(() => {
+    const fetchEndpointRequests = async (endpoint_id) => {
+      const data = await getAll(endpoint_id)
+      setRequests(data)
+    }
+    fetchEndpointRequests(endpoint)
+  }, [])
 
   return (
     <>
@@ -171,14 +62,14 @@ function App() {
         <span>Endpoint: {endpoint}</span>
       </div>
 
-      <h5>Current Requests</h5>
+      <h4>Requests</h4>
       {requests.map((request) => {
         return (
           <li
             key={request.id}
             onClick={() => {
-              const req = handleFetchSingleRequest(endpoint, request.id)
-              setCurrentRequest(req)
+              handleFetchSingleRequest(endpoint, request.id)
+              //   console.log('handleFetchSingleRequest was invoked by click')
             }}
           >
             {request.dt_received} | {request.method} | {request.path}
@@ -198,73 +89,106 @@ function App() {
   )
 }
 
+function App() {
+  const [freshUser, setFreshUser] = useState(true)
+  const [endpoint, setEndpoint] = useState(null)
+
+  useEffect(() => {
+    let path = window.location.pathname
+    if (path === '/') return
+
+    const regex = /^\/[a-z0-9]{8}\/view$/i
+
+    if (!regex.test(path)) return
+
+    const checkIfEndpointExists = async (candidate_endpoint) => {
+      const exists = true //await endpointExists(candidate_endpoint)
+      if (exists) {
+        // navigates to an existing endpoint's view
+        setFreshUser(false)
+        setEndpoint(candidate_endpoint)
+      }
+    }
+
+    const potentialEndpoint = path.slice(1, 9)
+
+    checkIfEndpointExists(potentialEndpoint)
+
+    console.log('valid:', potentialEndpoint)
+  }, [])
+
+  // ??? how should we handle a user navigating to a potentially existing endpoint via the url input box of the browser???
+  //   const [endpoint, setEndpoint] = useState(null)
+
+  // how do we make async request?  probably not in USE EFFECT???
+  const handleCreateEndpoint = async () => {
+    setEndpoint(await createEndpoint())
+  }
+
+  return (
+    <>
+      {freshUser ? (
+        <button
+          onClick={() => {
+            console.log('create new endpoint ')
+            handleCreateEndpoint()
+          }}
+        >
+          create new endpoint
+        </button>
+      ) : (
+        <EndpointView endpoint={endpoint} />
+      )}
+    </>
+  )
+}
+
 export default App
 
-// id: 1,
-// endpoint: 'a111111',
-// dt_received: '2024-09-16 02:18:56.062676',
-// mongo_id: 1,
-// method: 'POST',
-// path: '/sample/post/request/',
+// useEffect(() => {
+// check url for a bin id
 
-/* CHATGPT 
- //   const truncateText = (text, maxLength = 20) => {
-  //     if (text.length > maxLength) {
-  //       return text.substring(0, maxLength) + '...'
-  //     }
-  //     return text
-  //   }
+/*
+    - input the base url of our request bin https://www.requestbin.com
+    - input a url with a endpoint in the path https://www.requestbin.com/&@$@$&&/view
 
-  //   return (
-  //     <div className="container mx-auto p-4">
-  //       <header className="flex justify-between items-center mb-8">
-  //         <h1 className="text-xl font-bold">Endpoint: {endpoint}</h1>
-  //         <div>
-  //           <button
-  //             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-  //             onClick={handleCreateEndpoint}
-  //           >
-  //             Create New Endpoint
-  //           </button>
-  //           <button
-  //             id="copy-button"
-  //             className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-  //             onClick={() => alert(`copied: ${endpoint}`)}
-  //           >
-  //             Copy URL
-  //           </button>
-  //         </div>
-  //       </header>
+      - DOES THIS endpoint view exist for another user?  if it does exist for another client, add
 
-  //       <main className="flex">
-  //         <div className="w-1/2 pr-2">
-  //           <h5 className="font-bold mb-2">Current Requests</h5>
-  //           <ul>
-  //             {requests.map((request) => (
-  //               <li
-  //                 key={request.id}
-  //                 className="mb-1 p-2 hover:bg-gray-100 cursor-pointer"
-  //                 onClick={() => {
-  //                   const req = handleFetchSingleRequest(endpoint, request.id)
-  //                   setCurrentRequest(req)
-  //                 }}
-  //               >
-  //                 {request.dt_received} | {request.method} |{' '}
-  //                 {truncateText(request.path)}
-  //               </li>
-  //             ))}
-  //           </ul>
-  //         </div>
-  //         <div className="w-1/2 pl-2">
-  //           <h3 className="font-bold mb-2">Currently Viewed Request</h3>
-  //           {currentRequest ? (
-  //             <CurrentlyViewedRequest requestData={currentRequest} />
-  //           ) : (
-  //             <p>Select a request to view details</p>
-  //           )}
-  //         </div>
-  //       </main>
-  //     </div>
-  //   )
+      - check curr local storage for existing bins (endpoints)
+          - if the key exists, load the last view of the most recent endpoint (last in the array)
+          - otherwise -> , call createEndpoint, add to local storage, redirect to new url for VIEW of that endpoint
+      */
+//     const checkLocalStorage = () => {
+//       const cachedEndpoints = localStorage.getItem('cached_endpoints')
 
-*/
+//       if (!cachedEndpoints) {
+//         // check db
+//       }
+//     }
+
+//     return () => {}
+//   }, [])
+
+// const createNewBin = async (event) => {
+//   event.preventDefault()
+
+//   try {
+//     const endpoint = createBin()
+
+//     const endpointsArray = localStorage.getItem('bin5alive.endpoints')
+
+//     endpointsArray.push(endpoint)
+
+//     window.localStorage.setItem(
+//       'bin5alive.endpoints',
+//       JSON.stringify(endpointsArray)
+//     )
+
+//     window.localStorage.setItem('bin5alive.current', JSON.stringify(endpoint))
+//   } catch (error) {
+//     setErrorMessage('Error: Could not create a new bin')
+//     setTimeout(() => {
+//       setErrorMessage(null)
+//     }, 3000)
+//   }
+// }
