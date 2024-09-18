@@ -1,7 +1,7 @@
 const BASE = 'http://localhost:3000/' // process.env.BASE_URL
 
 const createEndpoint = async () => {
-  return 'https://www.joelbarton.com/THE_ENDPOINT'
+  return 'a1111111'
   //   return await fetch('/')
 }
 

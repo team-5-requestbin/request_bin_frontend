@@ -1,4 +1,20 @@
 /* eslint-disable react/prop-types */
+/* 
+Wednesday/Thursday todos:
+
+# FUNCTIONALITY:
+- generate test requests which query our target endpoint
+- checking local storage, populating local storage (persistent sessions, we are storing previously used endpoints)
+- make our "copy to clipboard"
+- update current url when we click "create new endpoint" (History API)
+
+
+# UI:
+- general layout and styling
+- breaking down the "currently viewed request" data 
+
+*/
+
 import { useState, useEffect } from 'react'
 import './App.css'
 import {
@@ -117,12 +133,22 @@ function App() {
     console.log('valid:', potentialEndpoint)
   }, [])
 
-  // ??? how should we handle a user navigating to a potentially existing endpoint via the url input box of the browser???
-  //   const [endpoint, setEndpoint] = useState(null)
-
   // how do we make async request?  probably not in USE EFFECT???
   const handleCreateEndpoint = async () => {
-    setEndpoint(await createEndpoint())
+    const newEndpoint = await createEndpoint()
+    // console.log(newEndpoint)
+    setEndpoint(newEndpoint)
+
+    // Current URL: https://my-website.com/page_a
+    console.log()
+    const nextURL = window.location.href
+    const nextTitle = 'our Request bin'
+    const nextState = { additionalInformation: 'Updated the URL with JS' }
+
+    // This will create a new entry in the browser's history, without reloading
+    window.history.pushState(nextState, nextTitle, nextURL)
+
+    // setFreshUser(false)
   }
 
   return (
@@ -130,11 +156,11 @@ function App() {
       {freshUser ? (
         <button
           onClick={() => {
-            console.log('create new endpoint ')
+            // console.log('create new endpoint ')
             handleCreateEndpoint()
           }}
         >
-          create new endpoint
+          new public endpoint
         </button>
       ) : (
         <EndpointView endpoint={endpoint} />
