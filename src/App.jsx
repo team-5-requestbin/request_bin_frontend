@@ -160,100 +160,42 @@ function App() {
     return getFullRequest(endpoint_id, request_id)
   }
 
-  const truncateText = (text, maxLength = 20) => {
-    if (text.length > maxLength) {
-      return text.substring(0, maxLength) + '...'
-    }
-    return text
-  }
-
   return (
-    <div className="container mx-auto p-4">
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-xl font-bold">Endpoint: {endpoint}</h1>
-        <div>
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
-            onClick={handleCreateEndpoint}
-          >
-            Create New Endpoint
-          </button>
-          <button
-            id="copy-button"
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-            onClick={() => alert(`copied: ${endpoint}`)}
-          >
-            Copy URL
-          </button>
-        </div>
-      </header>
+    <>
+      <div className="px-1 border-8">This is a request bin</div>
+      <CreateEndpointButton handleCreateEndpoint={handleCreateEndpoint} />
+      <button id="copy-button" onClick={() => alert(`copied: ${endpoint}`)}>
+        Copy
+      </button>
+      <div>
+        <span>Endpoint: {endpoint}</span>
+      </div>
 
-      <main className="flex">
-        <div className="w-1/2 pr-2">
-          <h5 className="font-bold mb-2">Current Requests</h5>
-          <ul>
-            {requests.map((request) => (
-              <li
-                key={request.id}
-                className="mb-1 p-2 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  const req = handleFetchSingleRequest(endpoint, request.id)
-                  setCurrentRequest(req)
-                }}
-              >
-                {request.dt_received} | {request.method} |{' '}
-                {truncateText(request.path)}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="w-1/2 pl-2">
-          <h3 className="font-bold mb-2">Currently Viewed Request</h3>
-          {currentRequest ? (
-            <CurrentlyViewedRequest requestData={currentRequest} />
-          ) : (
-            <p>Select a request to view details</p>
-          )}
-        </div>
-      </main>
-    </div>
+      <h5>Current Requests</h5>
+      {requests.map((request) => {
+        return (
+          <li
+            key={request.id}
+            onClick={() => {
+              const req = handleFetchSingleRequest(endpoint, request.id)
+              setCurrentRequest(req)
+            }}
+          >
+            {request.dt_received} | {request.method} | {request.path}
+          </li>
+        )
+      })}
+      <br />
+      <br />
+      <h3>
+        <b>Currently Viewed Request</b>
+      </h3>
+
+      {currentRequest ? (
+        <CurrentlyViewedRequest requestData={currentRequest} />
+      ) : null}
+    </>
   )
-  //   return (
-  //     <>
-  //       <div className="px-1 border-8">This is a request bin</div>
-  //       <CreateEndpointButton handleCreateEndpoint={handleCreateEndpoint} />
-  //       <button id="copy-button" onClick={() => alert(`copied: ${endpoint}`)}>
-  //         Copy
-  //       </button>
-  //       <div>
-  //         <span>Endpoint: {endpoint}</span>
-  //       </div>
-
-  //       <h5>Current Requests</h5>
-  //       {requests.map((request) => {
-  //         return (
-  //           <li
-  //             key={request.id}
-  //             onClick={() => {
-  //               const req = handleFetchSingleRequest(endpoint, request.id)
-  //               setCurrentRequest(req)
-  //             }}
-  //           >
-  //             {request.dt_received} | {request.method} | {request.path}
-  //           </li>
-  //         )
-  //       })}
-  //       <br />
-  //       <br />
-  //       <h3>
-  //         <b>Currently Viewed Request</b>
-  //       </h3>
-
-  //       {currentRequest ? (
-  //         <CurrentlyViewedRequest requestData={currentRequest} />
-  //       ) : null}
-  //     </>
-  //   )
 }
 
 export default App
@@ -264,3 +206,65 @@ export default App
 // mongo_id: 1,
 // method: 'POST',
 // path: '/sample/post/request/',
+
+/* CHATGPT 
+ //   const truncateText = (text, maxLength = 20) => {
+  //     if (text.length > maxLength) {
+  //       return text.substring(0, maxLength) + '...'
+  //     }
+  //     return text
+  //   }
+
+  //   return (
+  //     <div className="container mx-auto p-4">
+  //       <header className="flex justify-between items-center mb-8">
+  //         <h1 className="text-xl font-bold">Endpoint: {endpoint}</h1>
+  //         <div>
+  //           <button
+  //             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+  //             onClick={handleCreateEndpoint}
+  //           >
+  //             Create New Endpoint
+  //           </button>
+  //           <button
+  //             id="copy-button"
+  //             className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+  //             onClick={() => alert(`copied: ${endpoint}`)}
+  //           >
+  //             Copy URL
+  //           </button>
+  //         </div>
+  //       </header>
+
+  //       <main className="flex">
+  //         <div className="w-1/2 pr-2">
+  //           <h5 className="font-bold mb-2">Current Requests</h5>
+  //           <ul>
+  //             {requests.map((request) => (
+  //               <li
+  //                 key={request.id}
+  //                 className="mb-1 p-2 hover:bg-gray-100 cursor-pointer"
+  //                 onClick={() => {
+  //                   const req = handleFetchSingleRequest(endpoint, request.id)
+  //                   setCurrentRequest(req)
+  //                 }}
+  //               >
+  //                 {request.dt_received} | {request.method} |{' '}
+  //                 {truncateText(request.path)}
+  //               </li>
+  //             ))}
+  //           </ul>
+  //         </div>
+  //         <div className="w-1/2 pl-2">
+  //           <h3 className="font-bold mb-2">Currently Viewed Request</h3>
+  //           {currentRequest ? (
+  //             <CurrentlyViewedRequest requestData={currentRequest} />
+  //           ) : (
+  //             <p>Select a request to view details</p>
+  //           )}
+  //         </div>
+  //       </main>
+  //     </div>
+  //   )
+
+*/
