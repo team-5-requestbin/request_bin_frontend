@@ -38,7 +38,6 @@ const createEndpoint = async () => {
   // }
 }
 
-
 const getSingle = async (endpoint_id, request_id) => {
   try {
     // .get('/:endpoint_hash/:request_hash')

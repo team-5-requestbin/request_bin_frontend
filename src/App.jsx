@@ -45,11 +45,13 @@ const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
 }
 
 const CopyButton = ({ endpoint }) => {
-  // add "COPIED" behavior in the button
   return (
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
-      onClick={() => navigator.clipboard.writeText(BASE_URL + endpoint.endpoint_hash)}
+
+      onClick={() =>
+        navigator.clipboard.writeText(BASE_URL + endpoint.endpoint_hash)
+      }
     >
       copy endpoint
     </button>
@@ -70,10 +72,10 @@ const TargetEndpoint = ({ endpoint }) => {
 }
 
 const CurrentlyViewedRequest = ({ requestData }) => {
-  console.log(requestData)
+  console.log('->', requestData)
   return (
     <>
-      {JSON.stringify(requestData)}
+      {JSON.stringify(requestData, undefined, 4)}
       <div>Details</div>
       <div>Headers</div>
       <div>Body</div>
@@ -81,63 +83,109 @@ const CurrentlyViewedRequest = ({ requestData }) => {
   )
 }
 
+const NoCurrentlyViewed = ({ endpoint }) => {
+  return (
+    <div className="flex flex-col items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center">
+        <div>Your endpoint hash: {endpoint.endpoint_hash}</div>
+        <button onClick={() => alert('test events were generated!')}>
+          Generate Test Events
+        </button>
+        <div>more info...</div>
+      </div>
+    </div>
+  )
+}
+
 const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
+  const verbColor = {
+    GET: 'text-green-500',
+    POST: 'text-sky-500',
+    PUT: 'text-orange-500',
+    DELETE: 'text-red-500',
+  }
+
   return (
     <>
-      <div className="">
-        <div className={`flex justify-between py-2 px-2`}>
-          <span className="flex-1 font-bold text-2xl">Date</span>
-          <span className="flex-1 font-bold text-2xl">Verb</span>
-          <span className="flex-1 font-bold text-2xl">Path</span>
-        </div>
-        {requests.map((request, i) => {
-          return (
-            <>
-              <Request
-                evenRow={i % 2 == 0}
-                request={request}
-                key={request.id}
-                endpoint={endpoint}
-                handleFetchSingleRequest={handleFetchSingleRequest}
-              />
-            </>
-          )
-        })}
+
+      <div
+        id="table-headings"
+        className="flex flex-auto py-5 pl-3 bg-slate-600 border"
+      >
+        <span className="flex-1 font-bold text-xl">Time</span>
+        <span className="flex-1 font-bold text-xl">Verb</span>
+        <span className="flex-1 font-bold text-xl">Path</span>
+      </div>
+      <div
+        id="table-content"
+        className="flex flex-col max-h-[450px] overflow-y-auto scrollbar-hidden"
+      >
+        {requests.map((request, i) => (
+          <Request
+            evenRow={i % 2 === 0}
+            verbColor={verbColor}
+            request={request}
+            key={request.id}
+            endpoint={endpoint}
+            handleFetchSingleRequest={handleFetchSingleRequest}
+          />
+        ))}
+
       </div>
     </>
   )
 }
 
 
-const Request = ({ request, handleFetchSingleRequest, endpoint, evenRow }) => {
+const Request = ({
+  request,
+  handleFetchSingleRequest,
+  endpoint,
+  evenRow,
+  verbColor,
+}) => {
   const { method, path, dt_received } = request
-  const abbrPath = path.length < 30 ? path : path.slice(0, 27) + '...'
+  const abbrPath = path.length < 30 ? path : path.slice(0, 30)
+
   const [date, time] = new Date(dt_received).toLocaleString().split(',')
 
   return (
     <div
-      className={`flex justify-between ${
-        evenRow ? 'bg-gray-500' : 'bg-transparent'
-      }`}
+
+      className={`flex flex-auto ${evenRow ? '' : 'bg-transparent'} py-5 pl-3`}
+
       key={request.id}
       onClick={() => {
         handleFetchSingleRequest(endpoint, request.id)
       }}
     >
-      <span className="flex-1">{time}</span>
-      <span className="flex-1 font-bold">{method}</span>
-      <span className="flex-1">{abbrPath}</span>
+
+      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+        {time}
+      </span>
+      <span
+        className={`flex-1 font-bold ${
+          verbColor[method] ?? 'text-white'
+        } overflow-hidden text-ellipsis whitespace-nowrap`}
+      >
+        {method}
+      </span>
+      <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+        {abbrPath}
+      </span>
+
     </div>
   )
 }
 
 const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
   const [currentRequest, setCurrentRequest] = useState(null)
-  const [requests, setRequests] = useState([]) // conditional rendering with null or [], impact of useEffect and dom creation
+  const [requests, setRequests] = useState([])
 
   const handleFetchSingleRequest = async (endpoint_id, request_id) => {
+    console.log(endpoint_id)
     const singleRequest = await getSingle(endpoint_id, request_id)
-    // console.log(`singleRequest: `, singleRequest)
+
     setCurrentRequest(singleRequest)
   }
 
@@ -161,23 +209,21 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
             <CreateEndpointButton handleCreateEndpoint={handleCreateEndpoint} />
           </div>
         </nav>
-
         <main className="h-7/8 flex flex-row py-5 px-5 align-baseline">
-          <div className="flex-1">
+          <div className="flex-1 m-10">
             <RequestTable
               requests={requests}
               endpoint={endpoint}
               handleFetchSingleRequest={handleFetchSingleRequest}
             />
           </div>
-          <div className="flex-1">
-            <h3>
-              <b>Currently Viewed Request</b>
-            </h3>
 
+          <div className="flex-1">
             {currentRequest ? (
               <CurrentlyViewedRequest requestData={currentRequest} />
-            ) : null}
+            ) : (
+              <NoCurrentlyViewed endpoint={endpoint} />
+            )}
           </div>
         </main>
       </div>
@@ -187,7 +233,7 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
 
 function App() {
   const [freshUser, setFreshUser] = useState(true)
-  const [endpoint, setEndpoint] = useState('not set')
+  const [endpoint, setEndpoint] = useState('not set') // { endpoint_hash: 'asdfasdf' }
 
   useEffect(() => {
     const path = window.location.pathname
