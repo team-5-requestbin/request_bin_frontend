@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+
 import { useState, useEffect } from 'react'
 
 import './App.css'
@@ -225,7 +226,7 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
       setRequests(data)
     }
     fetchEndpointRequests(endpoint_hash)
-  })
+  }, [])
 
   return (
     <>
