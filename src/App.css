@@ -14,3 +14,7 @@
   -ms-overflow-style: none; /* Hide scrollbar for Internet Explorer and Edge */
   scrollbar-width: none; /* Hide scrollbar for Firefox */
 }
+
+.cursor-pointer:hover {
+  cursor: pointer;
+}
