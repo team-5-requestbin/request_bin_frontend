@@ -217,12 +217,13 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
   const [currentRequest, setCurrentRequest] = useState(null)
   const [requests, setRequests] = useState([])
 
-  const handleFetchSingleRequest = async (endpoint_hash, request_id) => {
-    const singleRequest = await getSingle(endpoint_hash, request_id)
+  const handleFetchSingleRequest = async (endpoint_hash, request_hash) => {
+    const singleRequest = await getSingle(endpoint_hash, request_hash)
     console.log('setting current request to:', singleRequest)
     setCurrentRequest(singleRequest)
     setCurrentRequest(singleRequest)
   }
+
 
   const deleteAll = async (endpoint_hash) => {
     // TODO

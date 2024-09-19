@@ -62,9 +62,12 @@ const getAll = async (endpoint_hash) => {
     const response = await fetch(`${BASE}${endpoint_hash}`)
     if (response.status !== 200) {
       console.log(`Error getAll(${endpoint_hash}) ${response.status}`)
-      return 'ERRORR'
+      return 'ERR'
     }
+
     const data = await response.json()
+    console.log('get all wants to log: ', data)
+
     return data
   } catch (error) {
     console.error(error)
@@ -76,7 +79,7 @@ const endpointExists = async (endpoint_hash) => {
   try {
     // const response = await fetch(BASE + 'endpoint_exists') // Dev
     const response = await fetch(`${BASE}${endpoint_hash}/exists`) // Prod
-    const data = await response.json()
+    // const data = await response.json()
     console.log(`endpoint exists: ${response.status}`)
     return response.status === 200
   } catch (error) {
