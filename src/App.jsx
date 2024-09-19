@@ -12,6 +12,24 @@ import settings from './settings'
 
 const BASE_URL = settings.BASE_URL
 
+const DeleteAllButton = ({ handleDeleteAll, endpoint_hash }) => {
+  return (
+    <>
+      <button
+        className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-red-600 transition duration-400"
+        onClick={() => {
+          handleDeleteAll(endpoint_hash)
+        }}
+      >
+        <i className={'fas fa-trash mr-3'}></i>
+        Delete All
+      </button>
+    </>
+  )
+}
+
+// const DeleteRequestButton = ({}) => {}
+
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
     <>
@@ -21,7 +39,7 @@ const CreateEndpointButton = ({ handleCreateEndpoint }) => {
           console.log('created endpoint: ', await handleCreateEndpoint())
         }}
       >
-        new endpoint
+        <i className="fas fa-plus mr-3"></i>new endpoint
       </button>
     </>
   )
@@ -45,12 +63,23 @@ const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
 }
 
 const CopyButton = ({ endpoint_hash }) => {
+  const [icon, setIcon] = useState('fas fa-link mr-3')
+  const [text, setText] = useState('copy')
   return (
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
-      onClick={() => navigator.clipboard.writeText(BASE_URL + endpoint_hash)}
+      onClick={() => {
+        navigator.clipboard.writeText(BASE_URL + endpoint_hash)
+        setIcon('fas fa-check mr-3')
+        setText('copied')
+        setTimeout(() => {
+          setIcon('fas fa-link mr-3')
+          setText('copy')
+        }, 3000)
+      }}
     >
-      copy endpoint
+      <i className={icon}></i>
+      {text}
     </button>
   )
 }
@@ -58,7 +87,7 @@ const CopyButton = ({ endpoint_hash }) => {
 const TargetEndpoint = ({ endpoint_hash }) => {
   return (
     <button
-      className="font-extrabold py-3 px-5 border-4 border-sky-400 rounded-sm"
+      className="font-mono text-3xl py-3 px-5 text-yellow-300" // border-4 border-sky-400 rounded-sm
       onClick={() => {
         console.log('tried to copy: ', BASE_URL + endpoint_hash)
       }}
@@ -112,13 +141,15 @@ const RequestTable = ({
         id="table-headings"
         className="flex flex-auto py-5 pl-3 bg-slate-600 border"
       >
-        <span className="flex-1 font-bold text-xl">Time</span>
+        <span className="flex-1 font-bold text-xl">
+          <i className="fas fa-clock mr-3"></i>Time
+        </span>
         <span className="flex-1 font-bold text-xl">Verb</span>
         <span className="flex-1 font-bold text-xl">Path</span>
       </div>
       <div
         id="table-content"
-        className="flex flex-col max-h-[450px] overflow-y-auto scrollbar-hidden"
+        className="flex flex-col max-h-[600px] overflow-y-auto scrollbar-hidden"
       >
         {requests.map((request, i) => (
           <Request
@@ -149,9 +180,10 @@ const Request = ({
 
   return (
     <div
-      className={`flex flex-auto ${evenRow ? '' : 'bg-transparent'} py-5 pl-3`}
+      className={`flex flex-auto py-5 pl-3 cursor-pointer`}
       key={request.id}
       onClick={() => {
+        console.log(request.path)
         handleFetchSingleRequest(endpoint_hash, request.id)
       }}
     >
@@ -177,10 +209,14 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
   const [requests, setRequests] = useState([])
 
   const handleFetchSingleRequest = async (endpoint_hash, request_id) => {
-    console.log(endpoint_hash)
     const singleRequest = await getSingle(endpoint_hash, request_id)
-
+    console.log('setting current request to:', singleRequest)
     setCurrentRequest(singleRequest)
+    setCurrentRequest(singleRequest)
+  }
+
+  const deleteAll = async (endpoint_hash) => {
+    console.log('deleting all requests for endpoint: ', endpoint_hash)
   }
 
   useEffect(() => {
@@ -209,6 +245,10 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
               requests={requests}
               endpoint_hash={endpoint_hash}
               handleFetchSingleRequest={handleFetchSingleRequest}
+            />
+            <DeleteAllButton
+              handleDeleteAll={deleteAll}
+              endpoint_hash={endpoint_hash}
             />
           </div>
 
