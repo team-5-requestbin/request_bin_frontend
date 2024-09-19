@@ -6,19 +6,19 @@ import {
   createEndpoint,
   getSingle,
   getAll,
-  //   endpointExists,
+  endpointExists
 } from './services/db_queries'
-
-// import BASE_URL from '../settings'
-const BASE_URL = 'https://1f73-76-75-12-28.ngrok-free.app/'
+import settings from './settings'
+// const BASE_URL = 'http://localhost:5174/'
+const BASE_URL = settings.BASE_URL
 
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
     <>
       <button
         className="font-bold py-3 px-20 rounded-full hover:bg-green-500 transition duration-400"
-        onClick={() => {
-          console.log('created endpoint: ', handleCreateEndpoint())
+        onClick={async () => {
+          console.log('created endpoint: ', await handleCreateEndpoint())
         }}
       >
         new endpoint
@@ -32,8 +32,9 @@ const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
     <main className="min-h-screen flex items-center justify-center bg-neutral-800 text-white">
       <button
         className="font-bold py-3 px-5 rounded-full shadow-lg bg-green-500 transition duration-400"
-        onClick={() => {
-          handleCreateEndpoint()
+        onClick={async () => {
+          const newEndpoint = await handleCreateEndpoint()
+          console.log(`In GenerateEndPoint: newEndPoint: ${newEndpoint.endpoint_hash}`);
           setFreshUser(false)
         }}
       >
@@ -48,7 +49,7 @@ const CopyButton = ({ endpoint }) => {
   return (
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
-      onClick={() => navigator.clipboard.writeText(BASE_URL + endpoint)}
+      onClick={() => navigator.clipboard.writeText(BASE_URL + endpoint.endpoint_hash)}
     >
       copy endpoint
     </button>
@@ -60,10 +61,10 @@ const TargetEndpoint = ({ endpoint }) => {
     <button
       className="font-extrabold py-3 px-5 border-4 border-sky-400 rounded-sm"
       onClick={() => {
-        console.log('tried to copy: ', BASE_URL + endpoint)
+        console.log('tried to copy: ', BASE_URL + endpoint.endpoint_hash)
       }}
     >
-      {BASE_URL + endpoint}
+      {BASE_URL + endpoint.endpoint_hash}
     </button>
   )
 }
@@ -83,38 +84,47 @@ const CurrentlyViewedRequest = ({ requestData }) => {
 const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
   return (
     <>
-      <div
-        className={`flex justify-between py-2 px-2`}>hi</div>
-        <div className=""></div>
-        {requests.map((request, i) => (
-          <Request
-            evenRow={i % 2 == 0}
-            request={request}
-            key={request.id}
-            endpoint={endpoint}
-            handleFetchSingleRequest={handleFetchSingleRequest}
-          />
-        ))}
+      <div className="">
+        <div className={`flex justify-between py-2 px-2`}>
+          <span className="flex-1 font-bold text-2xl">Date</span>
+          <span className="flex-1 font-bold text-2xl">Verb</span>
+          <span className="flex-1 font-bold text-2xl">Path</span>
+        </div>
+        {requests.map((request, i) => {
+          return (
+            <>
+              <Request
+                evenRow={i % 2 == 0}
+                request={request}
+                key={request.id}
+                endpoint={endpoint}
+                handleFetchSingleRequest={handleFetchSingleRequest}
+              />
+            </>
+          )
+        })}
       </div>
     </>
   )
 }
 
+
 const Request = ({ request, handleFetchSingleRequest, endpoint, evenRow }) => {
   const { method, path, dt_received } = request
   const abbrPath = path.length < 30 ? path : path.slice(0, 27) + '...'
+  const [date, time] = new Date(dt_received).toLocaleString().split(',')
 
   return (
     <div
       className={`flex justify-between ${
         evenRow ? 'bg-gray-500' : 'bg-transparent'
-      } py-2 px-2`}
+      }`}
       key={request.id}
       onClick={() => {
         handleFetchSingleRequest(endpoint, request.id)
       }}
     >
-      <span className="flex-1">{dt_received}</span>
+      <span className="flex-1">{time}</span>
       <span className="flex-1 font-bold">{method}</span>
       <span className="flex-1">{abbrPath}</span>
     </div>
@@ -188,7 +198,7 @@ function App() {
     if (!regex.test(path)) return
 
     const checkIfEndpointExists = async (candidate_endpoint) => {
-      const exists = true //await endpointExists(candidate_endpoint)
+      const exists = await endpointExists(candidate_endpoint)
       if (exists) {
         // navigates to an existing endpoint's view
         setFreshUser(false)
@@ -212,17 +222,18 @@ function App() {
 
     const newEndpoint = await createEndpoint()
 
-    setEndpoint(newEndpoint)
+    // setEndpoint(newEndpoint)
 
-    const nextURL = `https://1f73-76-75-12-28.ngrok-free.app/${newEndpoint.endpoint_hash}/view`
+    const nextURL = `${BASE_URL}${newEndpoint.endpoint_hash}/view`
     const nextTitle = 'our Request bin'
 
-    console.log(nextTitle, nextURL)
+    console.log(`nextTitle: ${nextTitle} nextURL ${nextURL}`)
     // This will create a new entry in the browser's history, without reloading
     window.history.pushState({}, nextTitle, nextURL)
     // setEndpoint(newEndpoint)
-
-    // setFreshUser(false)
+    console.log(`right before exiting handleCreateEndpoint ${newEndpoint.endpoint_hash}`)
+    setEndpoint(newEndpoint)
+    return newEndpoint
   }
 
   return (
