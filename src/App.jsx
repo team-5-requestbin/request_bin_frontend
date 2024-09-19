@@ -6,19 +6,19 @@ import {
   createEndpoint,
   getSingle,
   getAll,
-  //   endpointExists,
+  endpointExists
 } from './services/db_queries'
-
-// import BASE_URL from '../settings'
-const BASE_URL = 'https://1f73-76-75-12-28.ngrok-free.app/'
+import settings from './settings'
+// const BASE_URL = 'http://localhost:5174/'
+const BASE_URL = settings.BASE_URL
 
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
     <>
       <button
         className="font-bold py-3 px-20 rounded-full hover:bg-green-500 transition duration-400"
-        onClick={() => {
-          console.log('created endpoint: ', handleCreateEndpoint())
+        onClick={async () => {
+          console.log('created endpoint: ', await handleCreateEndpoint())
         }}
       >
         new endpoint
@@ -32,8 +32,9 @@ const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
     <main className="min-h-screen flex items-center justify-center bg-neutral-800 text-white">
       <button
         className="font-bold py-3 px-5 rounded-full shadow-lg bg-green-500 transition duration-400"
-        onClick={() => {
-          handleCreateEndpoint()
+        onClick={async () => {
+          const newEndpoint = await handleCreateEndpoint()
+          console.log(`In GenerateEndPoint: newEndPoint: ${newEndpoint.endpoint_hash}`);
           setFreshUser(false)
         }}
       >
@@ -47,6 +48,7 @@ const CopyButton = ({ endpoint }) => {
   return (
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
+
       onClick={() =>
         navigator.clipboard.writeText(BASE_URL + endpoint.endpoint_hash)
       }
@@ -105,6 +107,7 @@ const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
 
   return (
     <>
+
       <div
         id="table-headings"
         className="flex flex-auto py-5 pl-3 bg-slate-600 border"
@@ -127,10 +130,12 @@ const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
             handleFetchSingleRequest={handleFetchSingleRequest}
           />
         ))}
+
       </div>
     </>
   )
 }
+
 
 const Request = ({
   request,
@@ -141,16 +146,20 @@ const Request = ({
 }) => {
   const { method, path, dt_received } = request
   const abbrPath = path.length < 30 ? path : path.slice(0, 30)
+
   const [date, time] = new Date(dt_received).toLocaleString().split(',')
 
   return (
     <div
+
       className={`flex flex-auto ${evenRow ? '' : 'bg-transparent'} py-5 pl-3`}
+
       key={request.id}
       onClick={() => {
         handleFetchSingleRequest(endpoint, request.id)
       }}
     >
+
       <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
         {time}
       </span>
@@ -164,6 +173,7 @@ const Request = ({
       <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
         {abbrPath}
       </span>
+
     </div>
   )
 }
@@ -234,7 +244,7 @@ function App() {
     if (!regex.test(path)) return
 
     const checkIfEndpointExists = async (candidate_endpoint) => {
-      const exists = true //await endpointExists(candidate_endpoint)
+      const exists = await endpointExists(candidate_endpoint)
       if (exists) {
         // navigates to an existing endpoint's view
         setFreshUser(false)
@@ -258,17 +268,18 @@ function App() {
 
     const newEndpoint = await createEndpoint()
 
-    setEndpoint(newEndpoint)
+    // setEndpoint(newEndpoint)
 
-    const nextURL = `https://1f73-76-75-12-28.ngrok-free.app/${newEndpoint.endpoint_hash}/view`
+    const nextURL = `${BASE_URL}${newEndpoint.endpoint_hash}/view`
     const nextTitle = 'our Request bin'
 
-    console.log(nextTitle, nextURL)
+    console.log(`nextTitle: ${nextTitle} nextURL ${nextURL}`)
     // This will create a new entry in the browser's history, without reloading
     window.history.pushState({}, nextTitle, nextURL)
     // setEndpoint(newEndpoint)
-
-    // setFreshUser(false)
+    console.log(`right before exiting handleCreateEndpoint ${newEndpoint.endpoint_hash}`)
+    setEndpoint(newEndpoint)
+    return newEndpoint
   }
 
   return (
