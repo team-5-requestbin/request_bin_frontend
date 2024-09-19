@@ -17,11 +17,10 @@ function generateRandomHash() {  // Del me for prod
   return result
 }
 
-
 const createEndpoint = async () => {
   // Dev
   const endpoint_hash = generateRandomHash()
-  return { "endpoint_hash": endpoint_hash }
+  return endpoint_hash
 
   // Prod below
   // try {
@@ -31,8 +30,8 @@ const createEndpoint = async () => {
   //     console.log(`Error createEndPoint ${response.status}`)
   //     return 'error'  // what to do?!?!?!?
   //   }
-  //   const data = await response.json()
-  //   return data
+  //   const data = await response.json()  
+  //   return data  // just return the endpoint!!!!!!! as a string
   // } catch (error) {
   //   console.error(error)
   // }

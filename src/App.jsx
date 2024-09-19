@@ -6,10 +6,10 @@ import {
   createEndpoint,
   getSingle,
   getAll,
-  endpointExists
+  endpointExists,
 } from './services/db_queries'
 import settings from './settings'
-// const BASE_URL = 'http://localhost:5174/'
+
 const BASE_URL = settings.BASE_URL
 
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
@@ -26,7 +26,7 @@ const CreateEndpointButton = ({ handleCreateEndpoint }) => {
     </>
   )
 }
-// fresh session...
+
 const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
   return (
     <main className="min-h-screen flex items-center justify-center bg-neutral-800 text-white">
@@ -34,7 +34,7 @@ const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
         className="font-bold py-3 px-5 rounded-full shadow-lg bg-green-500 transition duration-400"
         onClick={async () => {
           const newEndpoint = await handleCreateEndpoint()
-          console.log(`In GenerateEndPoint: newEndPoint: ${newEndpoint.endpoint_hash}`);
+          console.log(`In GenerateEndPoint: newEndPoint: ${newEndpoint}`)
           setFreshUser(false)
         }}
       >
@@ -44,35 +44,32 @@ const GenerateEndpoint = ({ handleCreateEndpoint, setFreshUser }) => {
   )
 }
 
-const CopyButton = ({ endpoint }) => {
+const CopyButton = ({ endpoint_hash }) => {
   return (
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
-
-      onClick={() =>
-        navigator.clipboard.writeText(BASE_URL + endpoint.endpoint_hash)
-      }
+      onClick={() => navigator.clipboard.writeText(BASE_URL + endpoint_hash)}
     >
       copy endpoint
     </button>
   )
 }
 
-const TargetEndpoint = ({ endpoint }) => {
+const TargetEndpoint = ({ endpoint_hash }) => {
   return (
     <button
       className="font-extrabold py-3 px-5 border-4 border-sky-400 rounded-sm"
       onClick={() => {
-        console.log('tried to copy: ', BASE_URL + endpoint.endpoint_hash)
+        console.log('tried to copy: ', BASE_URL + endpoint_hash)
       }}
     >
-      {BASE_URL + endpoint.endpoint_hash}
+      {BASE_URL + endpoint_hash}
     </button>
   )
 }
 
 const CurrentlyViewedRequest = ({ requestData }) => {
-  console.log('->', requestData)
+  //   console.log('->', requestData)
   return (
     <>
       {JSON.stringify(requestData, undefined, 4)}
@@ -83,11 +80,11 @@ const CurrentlyViewedRequest = ({ requestData }) => {
   )
 }
 
-const NoCurrentlyViewed = ({ endpoint }) => {
+const NoCurrentlyViewed = ({ endpoint_hash }) => {
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <div className="flex flex-col items-center justify-center">
-        <div>Your endpoint hash: {endpoint.endpoint_hash}</div>
+        <div>Your endpoint hash: {endpoint_hash}</div>
         <button onClick={() => alert('test events were generated!')}>
           Generate Test Events
         </button>
@@ -97,7 +94,11 @@ const NoCurrentlyViewed = ({ endpoint }) => {
   )
 }
 
-const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
+const RequestTable = ({
+  requests,
+  endpoint_hash,
+  handleFetchSingleRequest,
+}) => {
   const verbColor = {
     GET: 'text-green-500',
     POST: 'text-sky-500',
@@ -107,7 +108,6 @@ const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
 
   return (
     <>
-
       <div
         id="table-headings"
         className="flex flex-auto py-5 pl-3 bg-slate-600 border"
@@ -126,21 +126,19 @@ const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
             verbColor={verbColor}
             request={request}
             key={request.id}
-            endpoint={endpoint}
+            endpoint_hash={endpoint_hash}
             handleFetchSingleRequest={handleFetchSingleRequest}
           />
         ))}
-
       </div>
     </>
   )
 }
 
-
 const Request = ({
   request,
   handleFetchSingleRequest,
-  endpoint,
+  endpoint_hash,
   evenRow,
   verbColor,
 }) => {
@@ -151,15 +149,12 @@ const Request = ({
 
   return (
     <div
-
       className={`flex flex-auto ${evenRow ? '' : 'bg-transparent'} py-5 pl-3`}
-
       key={request.id}
       onClick={() => {
-        handleFetchSingleRequest(endpoint, request.id)
+        handleFetchSingleRequest(endpoint_hash, request.id)
       }}
     >
-
       <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
         {time}
       </span>
@@ -173,39 +168,38 @@ const Request = ({
       <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
         {abbrPath}
       </span>
-
     </div>
   )
 }
 
-const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
+const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
   const [currentRequest, setCurrentRequest] = useState(null)
   const [requests, setRequests] = useState([])
 
-  const handleFetchSingleRequest = async (endpoint_id, request_id) => {
-    console.log(endpoint_id)
-    const singleRequest = await getSingle(endpoint_id, request_id)
+  const handleFetchSingleRequest = async (endpoint_hash, request_id) => {
+    console.log(endpoint_hash)
+    const singleRequest = await getSingle(endpoint_hash, request_id)
 
     setCurrentRequest(singleRequest)
   }
 
   useEffect(() => {
-    const fetchEndpointRequests = async (endpoint_id) => {
-      const data = await getAll(endpoint_id)
+    const fetchEndpointRequests = async (endpoint_hash) => {
+      const data = await getAll(endpoint_hash)
       setRequests(data)
     }
-    fetchEndpointRequests(endpoint)
-  }, [endpoint])
+    fetchEndpointRequests(endpoint_hash)
+  })
 
   return (
     <>
       <div className="min-h-screen flex-col items-center bg-neutral-800 text-white">
         <nav className="h-1/8 flex flex-row py-5 px-5 align-baseline">
           <div className="flex-1">
-            <TargetEndpoint endpoint={endpoint} />
+            <TargetEndpoint endpoint_hash={endpoint_hash} />
           </div>
           <div className="flex-1 flex justify-between items-center">
-            <CopyButton endpoint={endpoint} />
+            <CopyButton endpoint_hash={endpoint_hash} />
             <CreateEndpointButton handleCreateEndpoint={handleCreateEndpoint} />
           </div>
         </nav>
@@ -213,7 +207,7 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
           <div className="flex-1 m-10">
             <RequestTable
               requests={requests}
-              endpoint={endpoint}
+              endpoint_hash={endpoint_hash}
               handleFetchSingleRequest={handleFetchSingleRequest}
             />
           </div>
@@ -222,7 +216,7 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
             {currentRequest ? (
               <CurrentlyViewedRequest requestData={currentRequest} />
             ) : (
-              <NoCurrentlyViewed endpoint={endpoint} />
+              <NoCurrentlyViewed endpoint_hash={endpoint_hash} />
             )}
           </div>
         </main>
@@ -233,7 +227,7 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
 
 function App() {
   const [freshUser, setFreshUser] = useState(true)
-  const [endpoint, setEndpoint] = useState('not set') // { endpoint_hash: 'asdfasdf' }
+  const [endpoint_hash, setEndpointHash] = useState(null)
 
   useEffect(() => {
     const path = window.location.pathname
@@ -248,37 +242,24 @@ function App() {
       if (exists) {
         // navigates to an existing endpoint's view
         setFreshUser(false)
-        setEndpoint(candidate_endpoint)
+        setEndpointHash(candidate_endpoint)
       }
     }
 
     const potentialEndpoint = path.slice(1, 9)
 
     checkIfEndpointExists(potentialEndpoint)
-
-    console.log('valid:', potentialEndpoint)
   }, [])
 
   const handleCreateEndpoint = async () => {
-    /* 
-    1. request new endpoint from backend
-    2. modify "endpoint" state value 
-    3. 
-    */
-
     const newEndpoint = await createEndpoint()
 
-    // setEndpoint(newEndpoint)
-
-    const nextURL = `${BASE_URL}${newEndpoint.endpoint_hash}/view`
+    const nextURL = `${BASE_URL}${newEndpoint}/view`
     const nextTitle = 'our Request bin'
 
-    console.log(`nextTitle: ${nextTitle} nextURL ${nextURL}`)
-    // This will create a new entry in the browser's history, without reloading
     window.history.pushState({}, nextTitle, nextURL)
-    // setEndpoint(newEndpoint)
-    console.log(`right before exiting handleCreateEndpoint ${newEndpoint.endpoint_hash}`)
-    setEndpoint(newEndpoint)
+
+    setEndpointHash(newEndpoint)
     return newEndpoint
   }
 
@@ -291,7 +272,7 @@ function App() {
         />
       ) : (
         <EndpointView
-          endpoint={endpoint}
+          endpoint_hash={endpoint_hash}
           handleCreateEndpoint={handleCreateEndpoint}
         />
       )}
