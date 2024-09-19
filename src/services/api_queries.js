@@ -1,4 +1,5 @@
 import settings from '../settings'
+
 const BASE = settings.API_URL
 
 // function generateRandomHash() {
@@ -86,7 +87,9 @@ const endpointExists = async (endpoint_hash) => {
 const deleteAll = async (endpoint_hash) => {
   // .delete('/:endpoint_hash')
   try {
-    const response = await fetch(`${BASE}${endpoint_hash}`, { method: 'DELETE' }) // Prod
+    const response = await fetch(`${BASE}${endpoint_hash}`, {
+      method: 'DELETE',
+    }) // Prod
     return response.status === 204
   } catch (error) {
     console.error(error)

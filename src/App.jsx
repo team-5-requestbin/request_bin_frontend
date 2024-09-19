@@ -31,6 +31,7 @@ const DeleteAllButton = ({ handleDeleteAll, endpoint_hash }) => {
 }
 
 // const DeleteRequestButton = ({}) => {}
+// TODO
 
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
@@ -116,7 +117,13 @@ const NoCurrentlyViewed = ({ endpoint_hash }) => {
     <div className="flex flex-col items-center justify-center h-full">
       <div className="flex flex-col items-center justify-center">
         <div>Your endpoint hash: {endpoint_hash}</div>
-        <button onClick={() => alert('test events were generated!')}>
+
+        <button
+          onClick={() => {
+            // TODO
+            alert('test events were generated!')
+          }}
+        >
           Generate Test Events
         </button>
         <div>more info...</div>
@@ -218,6 +225,7 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
   }
 
   const deleteAll = async (endpoint_hash) => {
+    // TODO
     console.log('deleting all requests for endpoint: ', endpoint_hash)
   }
 
