@@ -8,7 +8,8 @@ import {
   getSingle,
   getAll,
   endpointExists,
-} from './services/db_queries'
+} from './services/api_queries'
+
 import settings from './settings'
 
 const BASE_URL = settings.BASE_URL
