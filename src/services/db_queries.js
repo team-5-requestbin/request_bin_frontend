@@ -18,12 +18,12 @@ function generateRandomHash() {
 }
 
 const createEndpoint = async () => {
-    const endpoint_hash = generateRandomHash()
-    return { "endpoint_hash": endpoint_hash }
+  const endpoint_hash = generateRandomHash()
+  return { endpoint_hash: endpoint_hash }
 }
 
 const getSingle = async (endpoint_id, request_id) => {
-  console.log(endpoint_id, request_id)
+  //   console.log(endpoint_id, request_id)
   const response = await fetch(BASE + 'request_objects')
 
   const data = await response.json()
@@ -33,7 +33,7 @@ const getSingle = async (endpoint_id, request_id) => {
 
 const getAll = async (endpoint_id) => {
   try {
-    console.log(endpoint_id) 
+    console.log(endpoint_id)
     const response = await fetch(BASE + 'requests')
     const data = await response.json()
     return data

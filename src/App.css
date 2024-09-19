@@ -1,0 +1,16 @@
+.scrollbar-hidden {
+  overflow-y: scroll; /* Always show scrollbar for functionality */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  width: 0; /* Hide scrollbar for Chrome, Safari, and Opera */
+}
+
+.scrollbar-hidden::-webkit-scrollbar-thumb {
+  background: transparent; /* Hide the scrollbar thumb */
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none; /* Hide scrollbar for Internet Explorer and Edge */
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
