@@ -33,7 +33,7 @@ const getSingle = async (endpoint_id, request_id) => {
 
 const getAll = async (endpoint_id) => {
   try {
-    console.log(endpoint_id) // needed for real db query
+    console.log(endpoint_id) 
     const response = await fetch(BASE + 'requests')
     const data = await response.json()
     return data

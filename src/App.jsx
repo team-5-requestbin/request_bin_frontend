@@ -9,6 +9,9 @@ import {
   //   endpointExists,
 } from './services/db_queries'
 
+// import BASE_URL from '../settings'
+const BASE_URL = 'https://1f73-76-75-12-28.ngrok-free.app/'
+
 const CreateEndpointButton = ({ handleCreateEndpoint }) => {
   return (
     <>
@@ -45,9 +48,7 @@ const CopyButton = ({ endpoint }) => {
   return (
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
-      onClick={() =>
-        navigator.clipboard.writeText(window.location.href + endpoint)
-      }
+      onClick={() => navigator.clipboard.writeText(BASE_URL + endpoint)}
     >
       copy endpoint
     </button>
@@ -59,10 +60,10 @@ const TargetEndpoint = ({ endpoint }) => {
     <button
       className="font-extrabold py-3 px-5 border-4 border-sky-400 rounded-sm"
       onClick={() => {
-        console.log('tried to copy: ', window.location.href + endpoint)
+        console.log('tried to copy: ', BASE_URL + endpoint)
       }}
     >
-      {window.location.href + endpoint}
+      {BASE_URL + endpoint}
     </button>
   )
 }
@@ -82,10 +83,12 @@ const CurrentlyViewedRequest = ({ requestData }) => {
 const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
   return (
     <>
-      <h3>Requests</h3>
-      <div className="overflow-y-auto grid-rows-1">
-        {requests.map((request) => (
+      <div
+        className={`flex justify-between py-2 px-2`}>hi</div>
+        <div className=""></div>
+        {requests.map((request, i) => (
           <Request
+            evenRow={i % 2 == 0}
             request={request}
             key={request.id}
             endpoint={endpoint}
@@ -97,17 +100,24 @@ const RequestTable = ({ requests, endpoint, handleFetchSingleRequest }) => {
   )
 }
 
-const Request = ({ request, handleFetchSingleRequest, endpoint }) => {
+const Request = ({ request, handleFetchSingleRequest, endpoint, evenRow }) => {
+  const { method, path, dt_received } = request
+  const abbrPath = path.length < 30 ? path : path.slice(0, 27) + '...'
+
   return (
-    <span
-      className="border-4 border-red-100"
+    <div
+      className={`flex justify-between ${
+        evenRow ? 'bg-gray-500' : 'bg-transparent'
+      } py-2 px-2`}
       key={request.id}
       onClick={() => {
         handleFetchSingleRequest(endpoint, request.id)
       }}
     >
-      {request.method} | {request.path}
-    </span>
+      <span className="flex-1">{dt_received}</span>
+      <span className="flex-1 font-bold">{method}</span>
+      <span className="flex-1">{abbrPath}</span>
+    </div>
   )
 }
 
@@ -167,9 +177,7 @@ const EndpointView = ({ endpoint, handleCreateEndpoint }) => {
 
 function App() {
   const [freshUser, setFreshUser] = useState(true)
-  const [endpoint, setEndpoint] = useState(null)
-
-  // console.log(generateRandomHash())
+  const [endpoint, setEndpoint] = useState('not set')
 
   useEffect(() => {
     const path = window.location.pathname
@@ -206,12 +214,13 @@ function App() {
 
     setEndpoint(newEndpoint)
 
-    const nextURL = `${window.location.href}${newEndpoint.endpoint_hash}/view`
+    const nextURL = `https://1f73-76-75-12-28.ngrok-free.app/${newEndpoint.endpoint_hash}/view`
     const nextTitle = 'our Request bin'
 
     console.log(nextTitle, nextURL)
     // This will create a new entry in the browser's history, without reloading
     window.history.pushState({}, nextTitle, nextURL)
+    // setEndpoint(newEndpoint)
 
     // setFreshUser(false)
   }
