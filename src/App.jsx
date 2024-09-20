@@ -15,10 +15,6 @@ import settings from './settings'
 
 const BASE_URL = settings.BASE_URL
 
-/* 
-state: currently-displayed request
-
-*/
 const DeleteAllButton = ({ handleDeleteAll, endpoint_hash }) => {
   return (
     <>
