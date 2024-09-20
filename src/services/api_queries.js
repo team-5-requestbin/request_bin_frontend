@@ -43,15 +43,16 @@ const createEndpoint = async () => {
 const getSingle = async (endpoint_hash, request_hash) => {
   try {
     // .get('/:endpoint_hash/:request_hash')
-    // const response = await fetch(BASE + 'request_objects') // Dev
     const response = await fetch(`${BASE}${endpoint_hash}/${request_hash}`) // Prod
     if (response.status !== 200) {
       console.log(`Error getSingle(${endpoint_hash}) ${response.status}`)
       return 'ERRORRRRR'
     }
+    console.log(response)
     const data = await response.json()
+    console.log(data)
     return data
-  } catch (error) {
+  } catch (error) { 
     console.error(error)
   }
 }

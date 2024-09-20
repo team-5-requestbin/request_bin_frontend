@@ -8,12 +8,17 @@ import {
   getSingle,
   getAll,
   endpointExists,
+  deleteAll as deleteAllRequests,
 } from './services/api_queries'
 
 import settings from './settings'
 
 const BASE_URL = settings.BASE_URL
 
+/* 
+state: currently-displayed request
+
+*/
 const DeleteAllButton = ({ handleDeleteAll, endpoint_hash }) => {
   return (
     <>
@@ -91,23 +96,31 @@ const TargetEndpoint = ({ endpoint_hash }) => {
   return (
     <button
       className="font-mono text-3xl py-3 px-5 text-yellow-300" // border-4 border-sky-400 rounded-sm
-      onClick={() => {
-        console.log('tried to copy: ', BASE_URL + endpoint_hash)
-      }}
     >
-      {BASE_URL + endpoint_hash}
+      {`${BASE_URL}bin/${endpoint_hash}`}
     </button>
   )
 }
 
 const CurrentlyViewedRequest = ({ requestData }) => {
-  //   console.log('->', requestData)
+  const parseHeaders = (headersString) => {
+    const headers = headersString.split(',')
+    return headers.map()
+    console.log(headers)
+  }
+  // JSON.stringify(obj, undefined, 4)
+  // TODO
+  //   parseHeaders(requestData.headers)
   return (
     <>
-      {JSON.stringify(requestData, undefined, 4)}
-      <div>Details</div>
-      <div>Headers</div>
-      <div>Body</div>
+      <div className="flex flex-col">
+        <div>Method: {requestData.method}</div>
+        <div>Path: {requestData.path}</div>
+        <div className="overflow-hidden">
+          Headers: {JSON.stringify(requestData.headers, undefined, 4)}
+        </div>
+        <div>Body: {requestData.body}</div>
+      </div>
     </>
   )
 }
@@ -116,17 +129,11 @@ const NoCurrentlyViewed = ({ endpoint_hash }) => {
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <div className="flex flex-col items-center justify-center">
-        <div>Your endpoint hash: {endpoint_hash}</div>
-
-        <button
-          onClick={() => {
-            // TODO
-            alert('test events were generated!')
-          }}
-        >
-          Generate Test Events
-        </button>
-        <div>more info...</div>
+        <div>Your target endpoint: {`${BASE_URL}bin/${endpoint_hash}`}</div>
+        <div>
+          Select a single HTTP Request from the list to the left to see details
+          here.
+        </div>
       </div>
     </div>
   )
@@ -136,6 +143,7 @@ const RequestTable = ({
   requests,
   endpoint_hash,
   handleFetchSingleRequest,
+  selectedRequest,
 }) => {
   const verbColor = {
     GET: 'text-green-500',
@@ -162,6 +170,7 @@ const RequestTable = ({
       >
         {requests.map((request, i) => (
           <Request
+            selectedRequest={selectedRequest}
             evenRow={i % 2 === 0}
             verbColor={verbColor}
             request={request}
@@ -179,21 +188,25 @@ const Request = ({
   request,
   handleFetchSingleRequest,
   endpoint_hash,
-  evenRow,
+  selectedRequest,
   verbColor,
 }) => {
-  const { method, path, dt_received } = request
+  const { method, path, received_at, request_hash } = request
   const abbrPath = path.length < 30 ? path : path.slice(0, 30)
 
-  const [date, time] = new Date(dt_received).toLocaleString().split(',')
+  const [date, time] = new Date(received_at).toLocaleString().split(',')
+
+  const selected =
+    selectedRequest && selectedRequest.request_hash === request_hash
 
   return (
     <div
-      className={`flex flex-auto py-5 pl-3 cursor-pointer`}
+      className={`flex flex-auto py-5 pl-3 cursor-pointer ${
+        selected ? 'bg-yellow-300' : ''
+      }`}
       key={request.id}
       onClick={() => {
-        console.log(request.path)
-        handleFetchSingleRequest(endpoint_hash, request.id)
+        handleFetchSingleRequest(endpoint_hash, request_hash)
       }}
     >
       <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -218,14 +231,25 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
   const [requests, setRequests] = useState([])
 
   const handleFetchSingleRequest = async (endpoint_hash, request_hash) => {
-    const singleRequest = await getSingle(endpoint_hash, request_hash)
-    console.log('setting current request to:', singleRequest)
-    setCurrentRequest(singleRequest)
-    setCurrentRequest(singleRequest)
+    // if the currently selected request is the same as the newly selected request, set to null
+    if (currentRequest && currentRequest.request_hash === request_hash) {
+      setCurrentRequest(null)
+    } else {
+      const singleRequest = await getSingle(endpoint_hash, request_hash)
+      setCurrentRequest(singleRequest)
+    }
+    /* 
+    get the request data for clicked upon request
+
+
+    */
+    // console.log('setting current request to:', singleRequest)
   }
 
-
   const deleteAll = async (endpoint_hash) => {
+    const res = await deleteAllRequests(endpoint_hash)
+
+    console.log(res)
     // TODO
     console.log('deleting all requests for endpoint: ', endpoint_hash)
   }
@@ -253,6 +277,7 @@ const EndpointView = ({ endpoint_hash, handleCreateEndpoint }) => {
         <main className="h-7/8 flex flex-row py-5 px-5 align-baseline">
           <div className="flex-1 m-10">
             <RequestTable
+              selectedRequest={currentRequest}
               requests={requests}
               endpoint_hash={endpoint_hash}
               handleFetchSingleRequest={handleFetchSingleRequest}
