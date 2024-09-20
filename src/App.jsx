@@ -305,7 +305,7 @@ function App() {
     const path = window.location.pathname
     if (path === '/') return
 
-    const regex = /^\/[a-z0-9]{8}\/view$/i
+    const regex = /^\/[a-z0-9]{8}\/view\/$/i // HERE?
 
     if (!regex.test(path)) return
 
@@ -326,7 +326,7 @@ function App() {
   const handleCreateEndpoint = async () => {
     const newEndpoint = await createEndpoint()
 
-    const nextURL = `${BASE_URL}${newEndpoint}/view`
+    const nextURL = `${BASE_URL}${newEndpoint}/view/` // here?
     const nextTitle = 'our Request bin'
 
     window.history.pushState({}, nextTitle, nextURL)
