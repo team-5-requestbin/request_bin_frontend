@@ -73,7 +73,7 @@ const CopyButton = ({ endpoint_hash }) => {
     <button
       className="font-bold py-3 px-20 rounded-full shadow-lg hover:bg-sky-400 transition duration-400"
       onClick={() => {
-        navigator.clipboard.writeText(BASE_URL + endpoint_hash)
+        navigator.clipboard.writeText(`${BASE_URL}bin/${endpoint_hash}`)
         setIcon('fas fa-check mr-3')
         setText('copied')
         setTimeout(() => {
